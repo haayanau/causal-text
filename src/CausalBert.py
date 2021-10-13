@@ -16,7 +16,7 @@ from torch.utils.data import Dataset, TensorDataset, DataLoader, RandomSampler, 
 from transformers import BertTokenizer
 from transformers import BertModel, BertPreTrainedModel, AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
-from transformers.modeling_bert import BertPreTrainingHeads
+# from transformers.modeling_bert import BertPreTrainingHeads
 from transformers import DistilBertTokenizer
 from transformers import DistilBertModel, DistilBertPreTrainedModel
 from torch.nn import CrossEntropyLoss
