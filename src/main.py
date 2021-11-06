@@ -105,32 +105,32 @@ def get_data(args):
     """ Read in a dataset and make sure it has fields
             text, T_true, T_proxy, C_true, Y_sim
     """
-    if args.simulate:
-        # Add columns T_true T_proxy C_true Y_sim to the data
-        df = pd.read_csv(args.data, sep='\t', error_bad_lines=False)
-        df['text'] = df['text'].map(lambda x: x.lower() if isinstance(x,str) else x)
-        df = simulation.run_simulation(df,
-            propensities=[args.p1, args.p2] if args.p1 > 0 else None,
-            precision=args.pre,
-            recall=args.rec,
-            b0=args.b0,
-            b1=args.b1,
-            offset=args.off,
-            gamma=args.gamma,
-            accuracy=args.acc,
-            proxy_type=args.ptype,
-            size=args.size)
-
-        # df2 = df[['text', 'Y_sim', 'C_true', 'T_proxy']]
-        # df2.to_csv('music_complete.tsv', sep='\t'); quit()
-
-    else:
-        # use what's given without any changes
+    # if args.simulate:
+    #     # Add columns T_true T_proxy C_true Y_sim to the data
+    #     df = pd.read_csv(args.data, sep='\t', error_bad_lines=False)
+    #     df['text'] = df['text'].map(lambda x: x.lower() if isinstance(x,str) else x)
+    #     df = simulation.run_simulation(df,
+    #         propensities=[args.p1, args.p2] if args.p1 > 0 else None,
+    #         precision=args.pre,
+    #         recall=args.rec,
+    #         b0=args.b0,
+    #         b1=args.b1,
+    #         offset=args.off,
+    #         gamma=args.gamma,
+    #         accuracy=args.acc,
+    #         proxy_type=args.ptype,
+    #         size=args.size)
+    #
+    #     # df2 = df[['text', 'Y_sim', 'C_true', 'T_proxy']]
+    #     # df2.to_csv('music_complete.tsv', sep='\t'); quit()
+    #
+    # else:
+    #     # use what's given without any changes
         # (T_true, T_proxy, C_true, and Y should already be in there)
-        df = pd.read_csv(args.data, sep='\t', error_bad_lines=False)
-        df['text'] = df['text'].map(lambda x: x.lower() if isinstance(x,str) else x)
-        df['Y_sim'] = df['Y']
-        df['C_true'] = df['C']
+    df = pd.read_csv(args.data, sep='\t', error_bad_lines=False)
+    df['text'] = df['text'].map(lambda x: x.lower() if isinstance(x,str) else x)
+    df['Y_sim'] = df['Y']
+    df['C_true'] = df['C']
 
     return df
 
