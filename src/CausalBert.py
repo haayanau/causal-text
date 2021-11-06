@@ -64,8 +64,8 @@ def make_bow_vector(ids, vocab_size, use_counts=False):
         ones = ones.cuda()
         ids = ids.cuda()
 
-    vec.scatter_add_(1, ids, ones)
-    vec[:, 0] = 0.0  # zero out pad
+    vec.scatter_add_(0, ids, ones)
+    vec[:, 1] = 0.0  # zero out pad
     if not use_counts:
         vec = (vec != 0).float()
     return vec
@@ -138,10 +138,10 @@ class CausalBert(DistilBertPreTrainedModel):
 
         # g logits
         g = self.g_cls(inputs)
-        if Y is not None:  # TODO train/test mode, this is a lil hacky
-            g_loss = CrossEntropyLoss()(g.view(-1, self.num_labels), T.view(-1))
-        else:
-            g_loss = 0.0
+        # if Y is not None:  # TODO train/test mode, this is a lil hacky
+        #     g_loss = CrossEntropyLoss()(g.view(-1, self.num_labels), T.view(-1))
+        # else:
+        g_loss = 0.0
 
         # conditional expected outcome logits: 
         # run each example through its corresponding T matrix
