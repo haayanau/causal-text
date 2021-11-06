@@ -65,7 +65,7 @@ def make_bow_vector(ids, vocab_size, use_counts=False):
         ids = ids.cuda()
 
     vec.scatter_add_(1, ids, ones)
-    vec[:, 1] = 0.0  # zero out pad
+    vec[:, 0] = 0.0  # zero out pad
     if not use_counts:
         vec = (vec != 0).float()
     return vec
