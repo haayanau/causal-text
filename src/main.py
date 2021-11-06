@@ -178,9 +178,9 @@ def run_experiment(args):
         ATE_estimates.append(
             ('ate_T', util.ATE_adjusted(df.C_true, df.T_true, df.Y_sim))
         )
-        ATE_estimates.append(
-            ('ate_matrix', util.ATE_matrix(df.T_true, df.T_proxy, df.C_true, df.Y_sim))
-        )
+        # ATE_estimates.append(
+        #     ('ate_matrix', util.ATE_matrix(df.T_true, df.T_proxy, df.C_true, df.Y_sim))
+        # )
 
     if 'T_proxy' in df:
         ATE_estimates.append(
@@ -188,13 +188,13 @@ def run_experiment(args):
         ATE_estimates.append(
             ('ate_T_proxy', util.ATE_adjusted(df.C_true, df.T_proxy, df.Y_sim)))
 
-        ATE_T_plus_reg, T_plus_reg = run_label_expansion(df, args, 
-            inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
-        ATE_estimates.append(('ate_T_plus_reg', ATE_T_plus_reg))
+        # ATE_T_plus_reg, T_plus_reg = run_label_expansion(df, args,
+        #     inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
+        # ATE_estimates.append(('ate_T_plus_reg', ATE_T_plus_reg))
 
-        ATE_T_plus_pu, T_plus_pu = run_label_expansion(df, args, single_class=True, 
-            inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
-        ATE_estimates.append(('ate_T_plus_pu', ATE_T_plus_pu))
+        # ATE_T_plus_pu, T_plus_pu = run_label_expansion(df, args, single_class=True,
+        #     inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
+        # ATE_estimates.append(('ate_T_plus_pu', ATE_T_plus_pu))
 
         if args.run_cb:
             cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
@@ -202,15 +202,15 @@ def run_experiment(args):
             ATE_cb_Tproxy = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
             ATE_estimates.append(('ate_cb_T_proxy', ATE_cb_Tproxy))
 
-            cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
-            cbw.train(df['text'], df.C_true, T_plus_pu, df.Y_sim, epochs=3)
-            ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
-            ATE_estimates.append(('ate_cb_T_plus_pu', ATE_cb_Tplus))
-
-            cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
-            cbw.train(df['text'], df.C_true, T_plus_reg, df.Y_sim, epochs=3)
-            ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
-            ATE_estimates.append(('ate_cb_T_plus_reg', ATE_cb_Tplus))
+            # cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
+            # cbw.train(df['text'], df.C_true, T_plus_pu, df.Y_sim, epochs=3)
+            # ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
+            # ATE_estimates.append(('ate_cb_T_plus_pu', ATE_cb_Tplus))
+            #
+            # cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
+            # cbw.train(df['text'], df.C_true, T_plus_reg, df.Y_sim, epochs=3)
+            # ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
+            # ATE_estimates.append(('ate_cb_T_plus_reg', ATE_cb_Tplus))
 
 
     return dict(ATE_estimates)
