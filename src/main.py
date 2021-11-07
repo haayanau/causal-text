@@ -198,7 +198,7 @@ def run_experiment(args):
 
         if args.run_cb:
             cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
-            cbw.train(df['text'], df.C_true, df.T_proxy, df.Y_sim, epochs=3)
+            cbw.train(df['text'], df.C_true, df.T_proxy, df.Y_sim, epochs=1)
             ATE_cb_Tproxy = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
             ATE_estimates.append(('ate_cb_T_proxy', ATE_cb_Tproxy))
 
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     out = {**vars(args), **{k: np.mean(v) for k, v in results.items()}}
 
     print('Oracle:\t%.4f' % out['ate_T'])
-    # print('Semi-Oracle:\t%.4f' % out['ate_matrix'])
+   # print('Semi-Oracle:\t%.4f' % out['ate_matrix'])
     print('Unadjusted:\t%.4f' % out['unadj_T_proxy'])
     # print('proxy-random:\t%.4f' % (args.ptype, out['ate_T_proxy_random']))
     # print('proxy-lex:\t%.4f' % (args.ptype, out['ate_T_proxy']))
