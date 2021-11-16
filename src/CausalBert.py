@@ -5,6 +5,9 @@ for a cleaner version of this code please see
     https://github.com/rpryzant/causal-bert-pytorch
 
 """
+import warnings
+warnings.filterwarnings('ignore')
+
 from collections import defaultdict
 import os
 import pickle
@@ -138,10 +141,10 @@ class CausalBert(DistilBertPreTrainedModel):
 
         # g logits
         g = self.g_cls(inputs)
-        # if Y is not None:  # TODO train/test mode, this is a lil hacky
-        #     g_loss = CrossEntropyLoss()(g.view(-1, self.num_labels), T.view(-1))
-        # else:
-        g_loss = 0.0
+        if Y is not None:  # TODO train/test mode, this is a lil hacky
+            g_loss = CrossEntropyLoss()(g.view(-1, self.num_labels), T.view(-1))
+        else:
+            g_loss = 0.0
 
         # conditional expected outcome logits: 
         # run each example through its corresponding T matrix
@@ -150,21 +153,21 @@ class CausalBert(DistilBertPreTrainedModel):
         Q_logits_T0 = self.Q_cls['0'](inputs)
         Q_logits_T1 = self.Q_cls['1'](inputs)
 
-        if Y is not None:
-            T0_indices = (T == 0).nonzero().squeeze()
-            Y_T1_labels = Y.clone().scatter(0, T0_indices, -100)
+        # if Y is not None:
+        #     T0_indices = (T == 0).nonzero().squeeze()
+        #     Y_T1_labels = Y.clone().scatter(0, T0_indices, -100)
 
-            T1_indices = (T == 1).nonzero().squeeze()
-            Y_T0_labels = Y.clone().scatter(0, T1_indices, -100)
+        #     T1_indices = (T == 1).nonzero().squeeze()
+        #     Y_T0_labels = Y.clone().scatter(0, T1_indices, -100)
 
-            Q_loss_T1 = CrossEntropyLoss()(
-                Q_logits_T1.view(-1, self.num_labels), Y_T1_labels)
-            Q_loss_T0 = CrossEntropyLoss()(
-                Q_logits_T0.view(-1, self.num_labels), Y_T0_labels)
+        #     Q_loss_T1 = CrossEntropyLoss()(
+        #         Q_logits_T1.view(-1, self.num_labels), Y_T1_labels.view(-1))
+        #     Q_loss_T0 = CrossEntropyLoss()(
+        #         Q_logits_T0.view(-1, self.num_labels), Y_T0_labels.view(-1))
 
-            Q_loss = Q_loss_T0 + Q_loss_T1
-        else:
-            Q_loss = 0.0
+        #     Q_loss = Q_loss_T0 + Q_loss_T1
+        # else:
+        Q_loss = 0.0
 
         sm = nn.Softmax(dim=1)
         Q0 = sm(Q_logits_T0)[:, 1]

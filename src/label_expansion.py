@@ -1,6 +1,6 @@
 # python expand_labels.py out.synthetic.tsv
 """
-one-class learning to expand T_proxy
+one-class learning to expand T_prox
 
 
 """

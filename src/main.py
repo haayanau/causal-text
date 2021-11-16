@@ -1,6 +1,8 @@
 """
 
 """
+import warnings
+warnings.filterwarnings('ignore')
 
 from tqdm import tqdm
 import sys
@@ -16,7 +18,7 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, accuracy_score, f1_score
 from sklearn import feature_extraction
 
-# import simulation
+import simulation
 import label_expansion
 import util
 
@@ -105,8 +107,31 @@ def get_data(args):
     """ Read in a dataset and make sure it has fields
             text, T_true, T_proxy, C_true, Y_sim
     """
+    # if args.simulate:
+    #     # Add columns T_true T_proxy C_true Y_sim to the data
+    #     df = pd.read_csv(args.data, sep='\t', error_bad_lines=False)
+    #     df['text'] = df['text'].map(lambda x: x.lower() if isinstance(x,str) else x)
+    #     df = simulation.run_simulation(df,
+    #         propensities=[args.p1, args.p2] if args.p1 > 0 else None,
+    #         precision=args.pre,
+    #         recall=args.rec,
+    #         b0=args.b0,
+    #         b1=args.b1,
+    #         offset=args.off,
+    #         gamma=args.gamma,
+    #         accuracy=args.acc,
+    #         proxy_type=args.ptype,
+    #         size=args.size)
+
+    #     # df2 = df[['text', 'Y_sim', 'C_true', 'T_proxy']]
+    #     # df2.to_csv('music_complete.tsv', sep='\t'); quit()
+
+    # else:
+        # use what's given without any changes
+        # (T_true, T_proxy, C_true, and Y should already be in there)
     df = pd.read_csv(args.data, sep='\t', error_bad_lines=False)
     df['text'] = df['text'].map(lambda x: x.lower() if isinstance(x,str) else x)
+    # df['Y'] = df['Y'].astype(str).replace('\.0', '', regex=True)
     df['Y_sim'] = df['Y']
     df['C_true'] = df['C']
 
@@ -166,13 +191,13 @@ def run_experiment(args):
         ATE_estimates.append(
             ('ate_T_proxy', util.ATE_adjusted(df.C_true, df.T_proxy, df.Y_sim)))
 
-        # ATE_T_plus_reg, T_plus_reg = run_label_expansion(df, args,
-        #     inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
-        # ATE_estimates.append(('ate_T_plus_reg', ATE_T_plus_reg))
+        ATE_T_plus_reg, T_plus_reg = run_label_expansion(df, args, 
+            inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
+        ATE_estimates.append(('ate_T_plus_reg', ATE_T_plus_reg))
 
-        # ATE_T_plus_pu, T_plus_pu = run_label_expansion(df, args, single_class=True,
-        #     inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
-        # ATE_estimates.append(('ate_T_plus_pu', ATE_T_plus_pu))
+        ATE_T_plus_pu, T_plus_pu = run_label_expansion(df, args, single_class=True, 
+            inner_alpha=args.ina, outer_alpha=args.outa, threshold=args.thre)
+        ATE_estimates.append(('ate_T_plus_pu', ATE_T_plus_pu))
 
         if args.run_cb:
             cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
@@ -180,15 +205,15 @@ def run_experiment(args):
             ATE_cb_Tproxy = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
             ATE_estimates.append(('ate_cb_T_proxy', ATE_cb_Tproxy))
 
-            # cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
-            # cbw.train(df['text'], df.C_true, T_plus_pu, df.Y_sim, epochs=3)
-            # ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
-            # ATE_estimates.append(('ate_cb_T_plus_pu', ATE_cb_Tplus))
-            #
-            # cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
-            # cbw.train(df['text'], df.C_true, T_plus_reg, df.Y_sim, epochs=3)
-            # ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
-            # ATE_estimates.append(('ate_cb_T_plus_reg', ATE_cb_Tplus))
+            cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
+            cbw.train(df['text'], df.C_true, T_plus_pu, df.Y_sim, epochs=1)
+            ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
+            ATE_estimates.append(('ate_cb_T_plus_pu', ATE_cb_Tplus))
+
+            cbw = CausalBert.CausalBertWrapper(g_weight=args.g_weight, Q_weight=args.Q_weight, mlm_weight=args.mlm_weight)
+            cbw.train(df['text'], df.C_true, T_plus_reg, df.Y_sim, epochs=1)
+            ATE_cb_Tplus = cbw.ATE(df.C_true, df['text'], Y=df.Y_sim, platt_scaling=False)
+            ATE_estimates.append(('ate_cb_T_plus_reg', ATE_cb_Tplus))
 
 
     return dict(ATE_estimates)
@@ -247,14 +272,14 @@ if __name__ == '__main__':
     out = {**vars(args), **{k: np.mean(v) for k, v in results.items()}}
 
     print('Oracle:\t%.4f' % out['ate_T'])
-   # print('Semi-Oracle:\t%.4f' % out['ate_matrix'])
+    # print('Semi-Oracle:\t%.4f' % out['ate_matrix'])
     print('Unadjusted:\t%.4f' % out['unadj_T_proxy'])
     # print('proxy-random:\t%.4f' % (args.ptype, out['ate_T_proxy_random']))
     # print('proxy-lex:\t%.4f' % (args.ptype, out['ate_T_proxy']))
-    # print('T-boost reg:\t%.4f' % out['ate_T_plus_reg'])
-    # print('T-boost pu:\t%.4f' % out['ate_T_plus_pu'])
+    print('T-boost reg:\t%.4f' % out['ate_T_plus_reg'])
+    print('T-boost pu:\t%.4f' % out['ate_T_plus_pu'])
     print('W adjust:\t%.4f' % out['ate_cb_T_proxy'])
-    # print('TextCause pu:\t%.4f' % out['ate_cb_T_plus_pu'])
-    # print('TextCause reg:\t%.4f' % out['ate_cb_T_plus_reg'])
+    print('TextCause pu:\t%.4f' % out['ate_cb_T_plus_pu'])
+    print('TextCause reg:\t%.4f' % out['ate_cb_T_plus_reg'])
 
     quit()
